@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Painel IA · Rogerio</title>
+<!-- iPhone: comporta como app na tela de inicio -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Painel IA" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#070c1a" />
+<link rel="apple-touch-icon" href="icon.png" />
+<link rel="icon" type="image/png" href="icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #070c1a;
+    --bg-2:      #0b1430;
+    --bg-3:      #0e1a3d;
+    --panel:     rgba(86, 132, 222, 0.07);
+    --panel-hi:  rgba(96, 145, 240, 0.12);
+    --glass-line:rgba(130, 170, 255, 0.14);
+    --glass-hi:  rgba(150, 190, 255, 0.30);
+    --text:      #eaf1ff;
+    --text-dim:  #9fb3da;
+    --text-faint:#5e729c;
+    --blue:      #4d8dff;
+    --blue-hi:   #6aa6ff;
+    --cyan:      #45c8e0;
+    --radius:    20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* deep navy ambience with cool blue blooms */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(130% 90% at 78% -15%, rgba(77, 141, 255, 0.28) 0%, transparent 52%),
+      radial-gradient(100% 80% at 5% 5%, rgba(69, 200, 224, 0.12) 0%, transparent 48%),
+      radial-gradient(120% 100% at 50% 120%, rgba(60, 110, 230, 0.16) 0%, transparent 55%),
+      linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 70%);
+  }
+  /* faint mesh dots */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image: radial-gradient(rgba(120,160,255,0.05) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 60px 40px 100px;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .greeting { animation: rise 0.8s cubic-bezier(.2,.7,.2,1) both; }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--blue-hi);
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--blue);
+    box-shadow: 0 0 12px 2px var(--blue);
+  }
+  h1 {
+    font-weight: 300;
+    font-size: clamp(36px, 5.4vw, 58px);
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+  h1 b {
+    font-weight: 700;
+    background: linear-gradient(120deg, #cfe1ff 0%, var(--blue-hi) 55%, var(--cyan) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .clock {
+    text-align: right;
+    animation: rise 0.8s 0.05s cubic-bezier(.2,.7,.2,1) both;
+    padding: 16px 22px;
+    background: var(--panel);
+    border: 1px solid var(--glass-line);
+    border-radius: 16px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .clock .time {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .clock .date {
+    font-size: 12.5px;
+    color: var(--text-faint);
+    text-transform: capitalize;
+    margin-top: 5px;
+  }
+
+  /* ---------- search ---------- */
+  .searchbar {
+    margin: 32px 0 4px;
+    position: relative;
+    animation: rise 0.8s 0.1s cubic-bezier(.2,.7,.2,1) both;
+  }
+  .searchbar input {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--glass-line);
+    border-radius: 16px;
+    padding: 16px 18px 16px 50px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    outline: none;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: border-color .25s, background .25s, box-shadow .25s;
+  }
+  .searchbar input::placeholder { color: var(--text-faint); }
+  .searchbar input:focus {
+    border-color: var(--glass-hi);
+    background: var(--panel-hi);
+    box-shadow: 0 0 0 4px rgba(77, 141, 255, 0.14), 0 8px 30px -10px rgba(77,141,255,0.4);
+  }
+  .searchbar svg {
+    position: absolute;
+    left: 18px; top: 50%;
+    transform: translateY(-50%);
+    width: 18px; height: 18px;
+    stroke: var(--blue-hi);
+    pointer-events: none;
+  }
+
+  /* ---------- add button + form ---------- */
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    margin: 14px 0 4px;
+    align-items: center;
+    animation: rise 0.8s 0.14s cubic-bezier(.2,.7,.2,1) both;
+  }
+  .add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 13px;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, var(--blue) 0%, #3a7bff 100%);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 22px -8px rgba(77,141,255,0.7), inset 0 1px 0 rgba(255,255,255,0.25);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .add-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -8px rgba(77,141,255,0.85), inset 0 1px 0 rgba(255,255,255,0.25); }
+  .add-btn:active { transform: translateY(0); }
+  .add-btn span { font-size: 18px; line-height: 1; margin-top: -2px; }
+
+  .addform {
+    display: none;
+    margin: 6px 0 4px;
+    padding: 18px;
+    background: var(--panel);
+    border: 1px solid var(--glass-line);
+    border-radius: 16px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    animation: rise 0.4s cubic-bezier(.2,.7,.2,1) both;
+  }
+  .addform.open { display: flex; }
+  .addform .field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }
+  .addform label { font-size: 11px; color: var(--text-faint); letter-spacing: 0.04em; text-transform: uppercase; }
+  .addform input {
+    background: rgba(8,14,32,0.6);
+    border: 1px solid var(--glass-line);
+    border-radius: 11px;
+    padding: 11px 13px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .addform input:focus { border-color: var(--glass-hi); }
+  .addform select {
+    background: rgba(8,14,32,0.6);
+    border: 1px solid var(--glass-line);
+    border-radius: 11px;
+    padding: 11px 13px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239fb3da' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+    padding-right: 34px;
+    transition: border-color .2s;
+  }
+  .addform select:focus { border-color: var(--glass-hi); }
+  .addform select option { background: #0b1430; color: var(--text); }
+  .addform .save {
+    padding: 11px 20px;
+    border: none;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--blue), #3a7bff);
+    color: #fff;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px -6px rgba(77,141,255,0.7);
+  }
+  .addform .cancel {
+    padding: 11px 16px;
+    border: 1px solid var(--glass-line);
+    border-radius: 11px;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* remove (×) on custom cards */
+  .card .remove {
+    position: absolute;
+    top: 8px; right: 10px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(8,14,32,0.7);
+    color: var(--text-faint);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    display: none;
+    z-index: 3;
+    align-items: center; justify-content: center;
+  }
+  .card.custom:hover .remove { display: flex; }
+  .card .remove:hover { color: #ff7a7a; background: rgba(40,10,20,0.8); }
+  .card.custom:hover .arrow { opacity: 0; }
+
+  /* ---------- sections ---------- */
+  .section { margin-top: 44px; }
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .section-head h2 {
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.01em;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .section-head .line {
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--glass-line), transparent);
+  }
+  .section-head .count {
+    font-size: 11px;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+    border: 1px solid var(--glass-line);
+    border-radius: 20px;
+    padding: 3px 10px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(218px, 1fr));
+    gap: 14px;
+  }
+
+  /* ---------- card ---------- */
+  .card {
+    --accent: var(--blue);
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 15px 16px;
+    background: var(--panel);
+    border: 1px solid var(--glass-line);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--text);
+    overflow: hidden;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    transition: transform .3s cubic-bezier(.2,.7,.2,1), border-color .3s, background .3s, box-shadow .3s;
+    animation: rise 0.6s cubic-bezier(.2,.7,.2,1) both;
+  }
+  /* glossy top sheen */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.07), transparent);
+    pointer-events: none;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(130% 150% at 0% 0%, color-mix(in srgb, var(--accent) 30%, transparent) 0%, transparent 45%);
+    opacity: 0;
+    transition: opacity .35s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--glass-line));
+    background: var(--panel-hi);
+    box-shadow: 0 22px 46px -22px color-mix(in srgb, var(--accent) 75%, black),
+                inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .card:hover::before { opacity: 1; }
+  .card:active { transform: translateY(-1px); }
+
+  .ico {
+    width: 44px; height: 44px;
+    flex-shrink: 0;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 30%, var(--bg-3)), color-mix(in srgb, var(--accent) 8%, var(--bg-2)));
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 12px -4px color-mix(in srgb, var(--accent) 60%, transparent);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+  .ico img { width: 24px; height: 24px; border-radius: 6px; display: block; }
+  .ico .letter {
+    font-size: 19px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .meta { z-index: 1; min-width: 0; }
+  .meta .name {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .meta .desc {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card .arrow {
+    position: absolute;
+    right: 16px; top: 50%;
+    transform: translate(6px, -50%);
+    opacity: 0;
+    transition: opacity .3s, transform .3s;
+    color: var(--blue-hi);
+    z-index: 1;
+    font-size: 15px;
+  }
+  .card:hover .arrow { opacity: 1; transform: translate(0, -50%); }
+
+  .empty {
+    display: none;
+    text-align: center;
+    color: var(--text-faint);
+    padding: 60px 0;
+    font-size: 15px;
+  }
+
+  footer {
+    margin-top: 66px;
+    padding-top: 22px;
+    border-top: 1px solid var(--glass-line);
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-faint);
+    font-size: 12.5px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  footer b { color: var(--text-dim); font-weight: 600; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    .wrap { padding: calc(42px + env(safe-area-inset-top)) 20px calc(80px + env(safe-area-inset-bottom)); }
+    .grid { grid-template-columns: 1fr 1fr; }
+    .clock { text-align: left; }
+    header { align-items: flex-start; }
+  }
+  @media (max-width: 420px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="greeting">
+        <div class="eyebrow">Painel de IA</div>
+        <h1 id="hello">Bom dia,<br><b>Rogerio</b></h1>
+      </div>
+      <div class="clock">
+        <div class="time" id="time">--:--</div>
+        <div class="date" id="date">—</div>
+      </div>
+    </header>
+
+    <div class="searchbar">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="search" type="text" placeholder="Buscar ferramenta…" autocomplete="off" />
+    </div>
+
+    <div class="toolbar">
+      <button class="add-btn" id="addBtn"><span>+</span> Adicionar ferramenta</button>
+    </div>
+
+    <div class="addform" id="addForm">
+      <div class="field">
+        <label>Nome</label>
+        <input id="f-name" type="text" placeholder="Ex: Runway" />
+      </div>
+      <div class="field" style="flex:2;">
+        <label>Link (URL)</label>
+        <input id="f-url" type="text" placeholder="https://..." />
+      </div>
+      <div class="field">
+        <label>Descrição (opcional)</label>
+        <input id="f-desc" type="text" placeholder="Ex: Vídeo por IA" />
+      </div>
+      <div class="field">
+        <label>Tema</label>
+        <select id="f-cat"></select>
+      </div>
+      <div class="field" id="f-newcat-wrap" style="display:none;">
+        <label>Nome do novo tema</label>
+        <input id="f-newcat" type="text" placeholder="Ex: Estudo & Concursos" />
+      </div>
+      <button class="save" id="f-save">Salvar</button>
+      <button class="cancel" id="f-cancel">Cancelar</button>
+    </div>
+
+    <main id="board"></main>
+    <div class="empty" id="empty">Nada encontrado com esse nome.</div>
+
+    <footer>
+      <span>Seu cockpit pessoal de ferramentas. <b id="count">0</b> ferramentas.</span>
+      <span>Clique em qualquer card &nbsp;·&nbsp; abre em nova aba</span>
+    </footer>
+  </div>
+
+<script>
+  const CATEGORIES = [
+    { title: "Imagem", tools: [
+      { name: "Midjourney",  desc: "Geração de imagem",       url: "https://www.midjourney.com/imagine",          domain: "midjourney.com",        accent: "#7aa0ff" },
+      { name: "Krea",        desc: "Imagem em tempo real",     url: "https://www.krea.ai/app",                     domain: "krea.ai",               accent: "#45c8e0" },
+      { name: "Lupa AI",     desc: "Upscale e edição",         url: "https://lupa.art/explore",                    domain: "lupa.art",              accent: "#4d8dff" },
+      { name: "MagicArena",  desc: "Comparar modelos",         url: "https://aigcarena.com/",                      domain: "aigcarena.com",         accent: "#5fb0ff" },
+    ]},
+    { title: "Vídeo & Avatar", tools: [
+      { name: "Higgsfield",  desc: "Vídeo cinematográfico",    url: "https://higgsfield.ai/create/video",          domain: "higgsfield.ai",         accent: "#6aa6ff" },
+      { name: "Kling AI",    desc: "Vídeo por IA",             url: "https://kling.ai/app/video/new",              domain: "kling.ai",              accent: "#45c8e0" },
+      { name: "Pika",        desc: "Vídeo criativo",           url: "https://pika.art/",                           domain: "pika.art",              accent: "#5b9eff" },
+      { name: "Dreamina",    desc: "Avatares falantes",        url: "https://dreamina.capcut.com/ai-tool/home",    domain: "dreamina.capcut.com",   accent: "#4ad0c8" },
+      { name: "Seedance",    desc: "Geração de vídeo",         url: "https://seedance2.ai/",                       domain: "seedance2.ai",          accent: "#7aa0ff" },
+    ]},
+    { title: "Criar apps & sites", tools: [
+      { name: "Lovable",     desc: "Apps com IA",              url: "https://lovable.dev/",                        domain: "lovable.dev",           accent: "#6aa6ff" },
+      { name: "Emergent",    desc: "Build com IA",             url: "https://app.emergent.sh/home",                domain: "emergent.sh",           accent: "#5b9eff" },
+      { name: "Stitch",      desc: "UI pelo Google",           url: "https://stitch.withgoogle.com/",              domain: "withgoogle.com",        accent: "#45c8e0" },
+      { name: "Rendair",     desc: "Render por IA",            url: "https://rendair.ai/",                         domain: "rendair.ai",            accent: "#7aa0ff" },
+      { name: "Google Flow", desc: "Vídeo no Google Labs",     url: "https://labs.google/fx/tools/flow",           domain: "labs.google",           accent: "#4d8dff" },
+    ]},
+    { title: "Assistentes & Estudo", tools: [
+      { name: "Gemini",      desc: "Assistente Google",        url: "https://gemini.google.com/app",               domain: "gemini.google.com",     accent: "#5fb0ff" },
+      { name: "AI Studio",   desc: "Construir com Gemini",     url: "https://aistudio.google.com/",                domain: "aistudio.google.com",   accent: "#6aa6ff" },
+      { name: "Claude",      desc: "Assistente Anthropic",     url: "https://claude.ai/",                          domain: "claude.ai",             accent: "#5b9eff" },
+      { name: "NotebookLM",  desc: "Pesquisa e notas",         url: "https://notebooklm.google.com/",              domain: "notebooklm.google.com", accent: "#45c8e0" },
+    ]},
+    { title: "Outros", tools: [
+      { name: "Pomelli",     desc: "Campanhas Google Labs",    url: "https://labs.google.com/pomelli/about/",      domain: "labs.google.com",       accent: "#7aa0ff" },
+      { name: "Mirofish",    desc: "Prever qualquer coisa",    url: "https://mirofish-demo.pages.dev/",            domain: "pages.dev",             accent: "#45c8e0" },
+      { name: "Spacio",      desc: "Plataforma Spacio",        url: "https://app.spacio.ai/",                      domain: "spacio.ai",             accent: "#6aa6ff" },
+    ]},
+  ];
+
+  const board = document.getElementById('board');
+  const CUSTOM_KEY = 'painelIA_custom';
+  const ACCENTS = ['#7aa0ff','#45c8e0','#4d8dff','#5fb0ff','#6aa6ff','#5b9eff','#4ad0c8'];
+
+  const loadCustom = () => { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY)) || []; } catch { return []; } };
+  const saveCustom = (arr) => localStorage.setItem(CUSTOM_KEY, JSON.stringify(arr));
+
+  function domainOf(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
+  }
+
+  function makeCard(t, opts = {}) {
+    const isCustom = opts.custom || t._custom;
+    const a = document.createElement('a');
+    a.className = 'card' + (isCustom ? ' custom' : '');
+    a.href = t.url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.style.setProperty('--accent', t.accent);
+    a.dataset.name = (t.name + ' ' + (t.desc || '')).toLowerCase();
+    const dom = t.domain || domainOf(t.url);
+    a.innerHTML = `
+      <div class="ico">
+        <img src="https://www.google.com/s2/favicons?domain=${dom}&sz=64" alt=""
+             onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'letter',textContent:'${(t.name[0]||'?')}'}))" />
+      </div>
+      <div class="meta">
+        <div class="name">${t.name}</div>
+        <div class="desc">${t.desc || dom}</div>
+      </div>
+      <span class="arrow">↗</span>`;
+    if (isCustom) {
+      const rm = document.createElement('button');
+      rm.className = 'remove';
+      rm.textContent = '×';
+      rm.title = 'Remover';
+      rm.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const arr = loadCustom().filter(x => !(x.name === t.name && x.url === t.url));
+        saveCustom(arr);
+        render();
+      });
+      a.appendChild(rm);
+    }
+    return a;
+  }
+
+  function makeSection(title, tools, opts = {}) {
+    const sec = document.createElement('section');
+    sec.className = 'section';
+    const head = document.createElement('div');
+    head.className = 'section-head';
+    head.innerHTML = `<h2>${title}</h2><div class="line"></div><span class="count">${tools.length}</span>`;
+    sec.appendChild(head);
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    tools.forEach(t => grid.appendChild(makeCard(t, opts)));
+    sec.appendChild(grid);
+    return sec;
+  }
+
+  function render() {
+    board.innerHTML = '';
+    let total = 0;
+    const custom = loadCustom().map(t => ({ ...t, _custom: true }));
+
+    // agrupa os atalhos do usuário por tema escolhido
+    const byCat = {};
+    const uncategorized = [];
+    custom.forEach(t => {
+      const c = (t.category || '').trim();
+      if (!c || c === 'Meus atalhos') uncategorized.push(t);
+      else (byCat[c] = byCat[c] || []).push(t);
+    });
+
+    // atalhos sem tema definido aparecem no topo, em "Meus atalhos"
+    if (uncategorized.length) {
+      board.appendChild(makeSection('Meus atalhos', uncategorized));
+      total += uncategorized.length;
+    }
+
+    // temas fixos, já mesclando os atalhos que o usuário colocou neles
+    const usedCats = new Set();
+    CATEGORIES.forEach(cat => {
+      const extra = byCat[cat.title] || [];
+      if (extra.length) usedCats.add(cat.title);
+      const tools = cat.tools.concat(extra);
+      board.appendChild(makeSection(cat.title, tools));
+      total += tools.length;
+    });
+
+    // temas novos criados pelo usuário (não existem nos fixos)
+    Object.keys(byCat).forEach(title => {
+      if (usedCats.has(title)) return;
+      board.appendChild(makeSection(title, byCat[title]));
+      total += byCat[title].length;
+    });
+
+    document.getElementById('count').textContent = total;
+    // stagger entrance
+    let d = 0;
+    board.querySelectorAll('.card').forEach(c => { c.style.animationDelay = (d += 0.03).toFixed(2) + 's'; });
+    applyFilter();
+  }
+
+  // ---- add form ----
+  const addBtn = document.getElementById('addBtn');
+  const addForm = document.getElementById('addForm');
+  const fName = document.getElementById('f-name');
+  const fUrl = document.getElementById('f-url');
+  const fDesc = document.getElementById('f-desc');
+  const fCat = document.getElementById('f-cat');
+  const fNewCat = document.getElementById('f-newcat');
+  const fNewCatWrap = document.getElementById('f-newcat-wrap');
+  const NEW_CAT = '__new__';
+
+  // monta a lista de temas: "Meus atalhos" + temas fixos + criar novo
+  function populateCats() {
+    const opts = ['Meus atalhos', ...CATEGORIES.map(c => c.title)];
+    fCat.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('')
+      + `<option value="${NEW_CAT}">+ Criar novo tema…</option>`;
+  }
+  populateCats();
+
+  fCat.addEventListener('change', () => {
+    const isNew = fCat.value === NEW_CAT;
+    fNewCatWrap.style.display = isNew ? '' : 'none';
+    if (isNew) fNewCat.focus();
+  });
+
+  function resetForm() {
+    fName.value = fUrl.value = fDesc.value = fNewCat.value = '';
+    fCat.value = 'Meus atalhos';
+    fNewCatWrap.style.display = 'none';
+  }
+
+  addBtn.addEventListener('click', () => {
+    addForm.classList.toggle('open');
+    if (addForm.classList.contains('open')) fName.focus();
+  });
+  document.getElementById('f-cancel').addEventListener('click', () => {
+    addForm.classList.remove('open');
+    resetForm();
+  });
+  function saveNew() {
+    const name = fName.value.trim();
+    let url = fUrl.value.trim();
+    if (!name || !url) { alert('Preencha o nome e o link.'); return; }
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    let category = fCat.value;
+    if (category === NEW_CAT) {
+      category = fNewCat.value.trim();
+      if (!category) { alert('Dê um nome ao novo tema.'); return; }
+    }
+    if (category === 'Meus atalhos') category = '';
+    const arr = loadCustom();
+    arr.push({
+      name,
+      url,
+      desc: fDesc.value.trim(),
+      category,
+      domain: domainOf(url),
+      accent: ACCENTS[arr.length % ACCENTS.length],
+    });
+    saveCustom(arr);
+    resetForm();
+    addForm.classList.remove('open');
+    render();
+  }
+  document.getElementById('f-save').addEventListener('click', saveNew);
+  [fName, fUrl, fDesc].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') saveNew(); }));
+
+  // ---- busca ----
+  const search = document.getElementById('search');
+  const empty = document.getElementById('empty');
+  function applyFilter() {
+    const q = search.value.trim().toLowerCase();
+    let anyVisible = false;
+    document.querySelectorAll('.section').forEach(sec => {
+      let secVisible = false;
+      sec.querySelectorAll('.card').forEach(card => {
+        const match = card.dataset.name.includes(q);
+        card.style.display = match ? '' : 'none';
+        if (match) secVisible = true;
+      });
+      sec.style.display = secVisible ? '' : 'none';
+      if (secVisible) anyVisible = true;
+    });
+    empty.style.display = anyVisible ? 'none' : 'block';
+  }
+  search.addEventListener('input', applyFilter);
+
+  render();
+
+  function tick() {
+    const now = new Date();
+    const h = now.getHours();
+    const hh = String(h).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('time').textContent = `${hh}:${mm}`;
+    const dias = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+    const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    document.getElementById('date').textContent =
+      `${dias[now.getDay()]}, ${now.getDate()} ${meses[now.getMonth()]}`;
+    const sauda = h < 5 ? 'Boa madrugada' : h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+    document.getElementById('hello').innerHTML = `${sauda},<br><b>Rogerio</b>`;
+  }
+  tick();
+  setInterval(tick, 10000);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== search) { e.preventDefault(); search.focus(); }
+  });
+</script>
+</body>
+</html>
